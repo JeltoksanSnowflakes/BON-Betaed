@@ -1,6 +1,6 @@
 
 # BON-Betaed
-This is a modified for of original project [bearded-octo-nemesis](https://github.com/immibis/bearded-octo-nemesis). The license of the project allows using, copying, modifying, merging, publishing, distributing, sublicensing, etc. including original project author's name.
+This is a modified fork of original project [bearded-octo-nemesis](https://github.com/immibis/bearded-octo-nemesis). The license of the project allows using, copying, modifying, merging, publishing, distributing, sublicensing, etc. including original project author's name.
 
 This project is forked and slightly modified to make it process older minecraft versions.
 
