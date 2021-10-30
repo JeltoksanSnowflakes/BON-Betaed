@@ -13,20 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MappingFactory {
-	
-	public static class MappingUnavailableException extends Exception {
-		private static final long serialVersionUID = 1L;
-		
-		public MappingUnavailableException(String message) {
-			super(message);
-		}
 
-		public MappingUnavailableException(NameSet from, NameSet to, String reason) {
-			super("Can't create mapping from "+from+" to "+to+" - "+reason);
-		}
-	}
-	
-	private static Map<String, MappingLoader_MCP> mcpInstances = new HashMap<>();
+	private static final Map<String, MappingLoader_MCP> mcpInstances = new HashMap<>();
 	
 	public static void registerMCPInstance(String mcVersion, NameSet.Side side, File mcpPath, IProgressListener progress) throws IOException, CantLoadMCPMappingException {
 		mcpInstances.put(mcVersion+" "+side, new MappingLoader_MCP(mcVersion, side, mcpPath, progress));
@@ -44,36 +32,35 @@ public class MappingFactory {
 		
 		if(mcpLoader != null)
 		{
-			MappingLoader_MCP loader = mcpLoader;
 			switch(from.type) {
 			case MCP:
 				switch(to.type) {
 				case OBF:
 					return new JoinMapping(
-							loader.getReverseCSV(),
-							loader.getReverseSRG()
+							mcpLoader.getReverseCSV(),
+							mcpLoader.getReverseSRG()
 						);
 				case SRG:
-					return loader.getReverseCSV();
+					return mcpLoader.getReverseCSV();
 				}
 				break;
 			case OBF:
 				switch(to.type) {
 				case MCP:
 					return new JoinMapping(
-							loader.getForwardSRG(),
-							loader.getForwardCSV()
+							mcpLoader.getForwardSRG(),
+							mcpLoader.getForwardCSV()
 						);
 				case SRG:
-					return loader.getForwardSRG();
+					return mcpLoader.getForwardSRG();
 				}
 				break;
 			case SRG:
 				switch(to.type) {
 				case OBF:
-					return loader.getReverseSRG();
+					return mcpLoader.getReverseSRG();
 				case MCP:
-					return loader.getForwardCSV();
+					return mcpLoader.getForwardCSV();
 				}
 				break;
 			}

@@ -20,8 +20,7 @@ public class SrgFile {
 	}
 
 	public SrgFile(File f, boolean reverse) throws IOException {
-		Scanner in = new Scanner(new BufferedReader(new FileReader(f)));
-		try {
+		try(Scanner in = new Scanner(new BufferedReader(new FileReader(f)))) {
 			while(in.hasNextLine()) {
 				if(in.hasNext("CL:")) {
 					in.next();
@@ -53,8 +52,6 @@ public class SrgFile {
 					in.nextLine();
 				}
 			}
-		} finally {
-			in.close();
 		}
 	}
 }

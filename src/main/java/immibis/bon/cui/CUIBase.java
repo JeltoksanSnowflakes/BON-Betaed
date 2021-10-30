@@ -87,14 +87,13 @@ public abstract class CUIBase {
 	}
 	
 	protected boolean checkOptions() throws Exception {
-		boolean ok = true;
 		for(Field f : getClass().getFields()) {
 			if(f.isAnnotationPresent(Required.class) && f.get(this) == null) {
 				System.err.println("Required option "+f.getAnnotation(Option.class).value()+" not present.");
-				ok = false;
+				return false;
 			}
 		}
-		return ok;
+		return true;
 	}
 	
 	protected void run(String[] args) throws Exception {

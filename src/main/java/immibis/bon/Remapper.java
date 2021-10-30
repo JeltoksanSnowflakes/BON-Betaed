@@ -1,7 +1,7 @@
 package immibis.bon;
 
 import immibis.bon.io.MappingFactory;
-import immibis.bon.io.MappingFactory.MappingUnavailableException;
+import immibis.bon.io.MappingUnavailableException;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
