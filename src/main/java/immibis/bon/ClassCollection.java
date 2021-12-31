@@ -1,5 +1,6 @@
 package immibis.bon;
 
+import lombok.Getter;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.ArrayList;
@@ -8,35 +9,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClassCollection implements Cloneable {
+
+	@Getter private NameSet nameSet;
+	@Getter private Collection<ClassNode> classes = new ArrayList<>();
+	@Getter private Map<String, byte[]> extraFiles = new HashMap<>();
+
 	public ClassCollection(NameSet nameSet, Collection<ClassNode> classes) {
 		this.nameSet = nameSet;
 		this.classes.addAll(classes);
 	}
-	
-	private NameSet nameSet;
-	private Collection<ClassNode> classes = new ArrayList<>();
-	private Map<String, byte[]> extraFiles = new HashMap<>();
-	
-	public Collection<ClassNode> getAllClasses() {
-		return classes;
-	}
-	
-	public NameSet getNameSet() {
-		return nameSet;
-	}
-	
+
 	@Override
 	public ClassCollection clone() {
 		try {
 			ClassCollection clone = (ClassCollection)super.clone();
 			clone.classes = new ArrayList<>();
-			
-			for(ClassNode ocn : classes) {
-				// clone the ClassNode
+
+			classes.forEach(classNode -> {
 				ClassNode ncn = new ClassNode();
-				ocn.accept(ncn);
+				classNode.accept(ncn);
 				clone.classes.add(ncn);
-			}
+			});
 			
 			// copy map, but don't copy data
 			clone.extraFiles = new HashMap<>(extraFiles);
@@ -48,21 +41,16 @@ public class ClassCollection implements Cloneable {
 		}
 	}
 	
-	public ClassCollection cloneWithNameSet(NameSet newNS) {
+	public ClassCollection cloneWithNameSet(NameSet newNameSet) {
 		ClassCollection rv = clone();
-		rv.nameSet = newNS;
+		rv.nameSet = newNameSet;
 		return rv;
 	}
 
 	public Map<String, ClassNode> getClassMap() {
-		Map<String, ClassNode> rv = new HashMap<String, ClassNode>();
-		for(ClassNode cn : classes)
-			rv.put(cn.name, cn);
+		Map<String, ClassNode> rv = new HashMap<>();
+		classes.forEach(classNode -> rv.put(classNode.name, classNode));
 		return rv;
-	}
-
-	public Map<String, byte[]> getExtraFiles() {
-		return extraFiles;
 	}
 
 	

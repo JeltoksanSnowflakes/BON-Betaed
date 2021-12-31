@@ -1,5 +1,7 @@
 package immibis.bon.mcp;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -9,8 +11,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 public abstract class CsvFile {
-	public static Map<String, String> read(File f, int[] n_sides) throws IOException {
-		Map<String, String> data = new HashMap<String, String>();
+	public static @NotNull Map<String, String> read(@NotNull File f, int[] n_sides) throws IOException {
+		Map<String, String> data = new HashMap<>();
 
 		try(Scanner in = new Scanner(new BufferedReader(new FileReader(f)))) {
 			in.useDelimiter(",");

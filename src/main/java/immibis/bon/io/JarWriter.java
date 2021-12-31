@@ -26,14 +26,14 @@ public class JarWriter {
 
 	public static void write(File file, ClassCollection cc, IProgressListener progress) throws IOException {
 		if(progress != null)
-			progress.setMax(cc.getAllClasses().size() + cc.getExtraFiles().size());
+			progress.setMax(cc.getClasses().size() + cc.getExtraFiles().size());
 		
 		int files = 0;
 		
 		Set<String> dirs = new HashSet<>();
 		
 		try (JarOutputStream j_out = new JarOutputStream(new FileOutputStream(file))) {
-			for(ClassNode cn : cc.getAllClasses()) {
+			for(ClassNode cn : cc.getClasses()) {
 				if(progress != null) 
 					progress.set(files++);
 				

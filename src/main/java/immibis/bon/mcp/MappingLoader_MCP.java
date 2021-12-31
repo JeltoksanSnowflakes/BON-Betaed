@@ -4,43 +4,35 @@ import immibis.bon.IProgressListener;
 import immibis.bon.Mapping;
 import immibis.bon.NameSet;
 import immibis.bon.NameSet.Side;
+import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public class MappingLoader_MCP {
-	
-	public static class CantLoadMCPMappingException extends Exception {
-		private static final long serialVersionUID = 1;
-		
-		public CantLoadMCPMappingException(String reason) {
-			super(reason);
-		}
-	}
-	
-	
-	
 	@SuppressWarnings("unused")
 	private final Side side;
 	@SuppressWarnings("unused")
 	private final String mcVer;
+
 	private final File mcpDir;
 	private final int[] sideNumbers;
 	private final File srgFile, excFile;
 	
 	// forward: obf -> searge -> mcp
 	// reverse: mcp -> searge -> obf
-	private Mapping forwardSRG, reverseSRG, forwardCSV, reverseCSV;
-	
-	
-	private Map<String, String> srgMethodDescriptors = new HashMap<>(); // SRG name -> SRG descriptor
-	private Map<String, Set<String>> srgMethodOwners = new HashMap<>(); // SRG name -> SRG owners
-	private Map<String, Set<String>> srgFieldOwners = new HashMap<>(); // SRG name -> SRG owners
+	@Getter private final Mapping forwardSRG, reverseSRG, forwardCSV, reverseCSV;
+
+	private final Map<String, String> srgMethodDescriptors = new HashMap<>(); // SRG name -> SRG descriptor
+	private final Map<String, Set<String>> srgMethodOwners = new HashMap<>(); // SRG name -> SRG owners
+	private final Map<String, Set<String>> srgFieldOwners = new HashMap<>(); // SRG name -> SRG owners
 	
 	private ExcFile excFileData;
 	
-	public MappingLoader_MCP(String mcVer, Side side, File mcpDir, IProgressListener progress) throws IOException, CantLoadMCPMappingException {
+	public MappingLoader_MCP(@NotNull String mcVer, @NotNull Side side, @NotNull File mcpDir, @Nullable IProgressListener progress) throws IOException {
 		this.mcVer = mcVer;
 		this.mcpDir = mcpDir;
 		this.side = side;
@@ -104,16 +96,14 @@ public class MappingLoader_MCP {
 	private void loadEXCFile() throws IOException {
 		excFileData = new ExcFile(excFile);
 	}
-	
-	
 
-	private void loadSRGMapping() throws IOException, CantLoadMCPMappingException {
+	private void loadSRGMapping() throws IOException {
 		SrgFile srg = new SrgFile(srgFile, false);
 		
 		forwardSRG.setDefaultPackage("net/minecraft/src/");
 		reverseSRG.addPrefix("net/minecraft/src/", "");
 		
-		for(Map.Entry<String, String> entry : srg.classes.entrySet()) {
+		for(Map.Entry<String, String> entry : srg.getClasses().entrySet()) {
 			String obfClass = entry.getKey();
 			String srgClass = entry.getValue();
 			
@@ -121,14 +111,14 @@ public class MappingLoader_MCP {
 			reverseSRG.setClass(srgClass, obfClass);
 		}
 		
-		for(Map.Entry<String, String> entry : srg.fields.entrySet()) {
+		for(Map.Entry<String, String> entry : srg.getFields().entrySet()) {
 			String obfOwnerAndName = entry.getKey();
 			String srgName = entry.getValue();
 			
 			String obfOwner = obfOwnerAndName.substring(0, obfOwnerAndName.lastIndexOf('/'));
 			String obfName = obfOwnerAndName.substring(obfOwnerAndName.lastIndexOf('/') + 1);
 			
-			String srgOwner = srg.classes.get(obfOwner);
+			String srgOwner = srg.getClasses().get(obfOwner);
 			
 			// Enum values don't use the CSV and don't start with field_
 			if(srgName.startsWith("field_")) {
@@ -145,7 +135,7 @@ public class MappingLoader_MCP {
 			reverseSRG.setField(srgOwner, srgName, obfName);
 		}
 		
-		for(Map.Entry<String, String> entry : srg.methods.entrySet()) {
+		for(Map.Entry<String, String> entry : srg.getMethods().entrySet()) {
 			String obfOwnerNameAndDesc = entry.getKey();
 			String srgName = entry.getValue();
 			
@@ -155,7 +145,7 @@ public class MappingLoader_MCP {
 			String obfDesc = obfOwnerNameAndDesc.substring(obfOwnerNameAndDesc.indexOf('('));
 			
 			String srgDesc = forwardSRG.mapMethodDescriptor(obfDesc);
-			String srgOwner = srg.classes.get(obfOwner);
+			String srgOwner = srg.getClasses().get(obfOwner);
 			
 			srgMethodDescriptors.put(srgName, srgDesc);
 			
@@ -178,7 +168,7 @@ public class MappingLoader_MCP {
 		}
 	}
 	
-	private void loadCSVMapping() throws IOException, CantLoadMCPMappingException  {
+	private void loadCSVMapping() throws IOException {
 		Map<String, String> fieldNames = CsvFile.read(new File(mcpDir, "conf/fields.csv"), sideNumbers);
 		Map<String, String> methodNames = CsvFile.read(new File(mcpDir, "conf/methods.csv"), sideNumbers);
 		
@@ -216,15 +206,6 @@ public class MappingLoader_MCP {
 			}
 		}
 	}
-
-
-
-	public Mapping getReverseSRG() {return reverseSRG;}
-	public Mapping getReverseCSV() {return reverseCSV;}
-	public Mapping getForwardSRG() {return forwardSRG;}
-	public Mapping getForwardCSV() {return forwardCSV;}
-
-
 
 	public static String getMCVer(File mcpDir) throws IOException {
 		try (Scanner in = new Scanner(new File(mcpDir, "conf/version.cfg"))) {

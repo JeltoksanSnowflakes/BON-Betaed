@@ -1,6 +1,7 @@
 package immibis.bon.io;
 
 import immibis.bon.ClassFormatException;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -10,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class IOUtils {
-	public static byte[] readStreamFully(InputStream stream) throws IOException {
+	public static byte[] readStreamFully(@NotNull InputStream stream) throws IOException {
 		ByteArrayOutputStream temp = new ByteArrayOutputStream(Math.max(8192, stream.available()));
 		byte[] buffer = new byte[8192];
 		int read;
@@ -33,7 +34,7 @@ public class IOUtils {
 		return cn;
 	}
 	
-	public static byte[] writeClass(ClassNode cn) {
+	public static byte[] writeClass(@NotNull ClassNode cn) {
 		ClassWriter cw = new ClassWriter(0);
 		cn.accept(cw);
 		return cw.toByteArray();

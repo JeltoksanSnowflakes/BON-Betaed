@@ -12,8 +12,6 @@ import immibis.bon.mcp.MappingLoader_MCP;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -32,19 +30,21 @@ public class GuiMain extends JFrame {
 	private final static String PREFS_KEY_BROWSEDIR = "browseDir";
 	private final static String PREFS_KEY_MCPDIR = "mcpDir";
 	
-	private JComboBox<Operation> opSelect;
-	private JComboBox<Side>sideSelect;
-	private JTextField inputField, outputField, mcpField;
-	private JButton goButton;
-	private JProgressBar progressBar;
-	private JLabel progressLabel;
+	private final JComboBox<Operation> opSelect;
+	private final JComboBox<Side>sideSelect;
+	private final JTextField inputField;
+	private final JTextField outputField;
+	private final JTextField mcpField;
+	private final JButton goButton;
+	private final JProgressBar progressBar;
+	private final JLabel progressLabel;
 	
 	private Thread curTask = null;
 	
 	// the last directory the user was browsing, for the input/output files
-	private final Reference<File> browseDir = new Reference<File>();
+	private final Reference<File> browseDir = new Reference<>();
 	// the last directory the user was browsing, for the MCP directory
-	private final Reference<File> mcpBrowseDir = new Reference<File>();
+	private final Reference<File> mcpBrowseDir = new Reference<>();
 	
 	private void savePrefs() {
 		prefs.put(PREFS_KEY_BROWSEDIR, browseDir.val.toString());
@@ -86,193 +86,185 @@ public class GuiMain extends JFrame {
 		final File inputFile = new File(inputField.getText());
 		final File outputFile = new File(outputField.getText());
 		
-		curTask = new Thread() {
-			public void run() {
-				boolean crashed = false;
-				
-				try {
-					
-					IProgressListener progress = new IProgressListener() {
-						private String currentText;
-						
-						@Override
-						public void start(final int max, final String text) {
-							currentText = text.equals("") ? " " : text;
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									progressLabel.setText(currentText);
-									if(max >= 0)
-										progressBar.setMaximum(max);
-									progressBar.setValue(0);
-								}
-							});
-						}
-						
-						@Override
-						public void set(final int value) {
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									progressBar.setValue(value);
-								}
-							});
-						}
-						
-						@Override
-						public void setMax(final int max) {
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									progressBar.setMaximum(max);
-								}
-							});
-						}
-					};
-					
-					
-					
-					String mcVer = MappingLoader_MCP.getMCVer(mcpDir);
-					
-					NameSet refNS = new NameSet(NameSet.Type.MCP, side.nsside, mcVer);
-					Map<String, ClassCollection> refCCList = new HashMap<>();
-					
-					for(String s : refPathList) {
-						File refPathFile = new File(mcpDir, s);
-						
-						progress.start(0, "Reading "+s);
-						refCCList.put(s, ClassCollectionFactory.loadClassCollection(refNS, refPathFile, progress));
-						
-						//progress.start(0, "Remapping "+s);
-						//refs.add(Remapper.remap(mcpRefCC, inputNS, Collections.<ClassCollection>emptyList(), progress));
-					}
-					
-					NameSet.Type[] remapTo;
-					NameSet.Type inputType;
-					
-					switch(op) {
-					case DeobfuscateMod:
-						inputType = NameSet.Type.OBF;
-						remapTo = new NameSet.Type[] {NameSet.Type.SRG, NameSet.Type.MCP};
-						break;
-						
-					case ReobfuscateMod:
-						inputType = NameSet.Type.MCP;
-						remapTo = new NameSet.Type[] {NameSet.Type.OBF};
-						break;
-						
-					case SRGifyMod:
-						inputType = NameSet.Type.OBF;
-						remapTo = new NameSet.Type[] {NameSet.Type.SRG};
-						break;
-						
-					case ReobfuscateModSRG:
-						inputType = NameSet.Type.MCP;
-						remapTo = new NameSet.Type[] {NameSet.Type.SRG};
-						break;
-						
-					default:
-						throw new AssertionError("operation = "+op+"?");
-					}
-					
-					NameSet inputNS = new NameSet(inputType, side.nsside, mcVer);
-					
-					progress.start(0, "Reading "+inputFile.getName());
-					ClassCollection inputCC = ClassCollectionFactory.loadClassCollection(inputNS, inputFile, progress);
-					
-					progress.start(0, "Reading MCP configuration");
-					MappingFactory.registerMCPInstance(mcVer, side.nsside, mcpDir, progress);
-					
-					
-					
-					// For deobfuscation:
-					/*                       MCP reference
-					 *                       |           |
-					 *                       |           |
-					 *                       |           |
-					 *                       V           V
-					 *             OBF reference       SRG reference
-					 *                 |                     |
-					 *                 |                     |
-					 *                 V                     V
-					 * OBF input -----------> SRG input -----------> MCP input (output file)
-					 */
-					
-					
-					
-					
-					// remap to obf names from searge names, then searge names to MCP names, in two steps
-					// the first will be a no-op if the mod uses searge names already
-					for(NameSet.Type outputType : remapTo) {
-						NameSet outputNS = new NameSet(outputType, side.nsside, mcVer);
-						
-						List<ClassCollection> remappedRefs = new ArrayList<>();
-						for(Map.Entry<String, ClassCollection> e : refCCList.entrySet()) {
-							
-							if(inputCC.getNameSet().equals(e.getValue().getNameSet())) {
-								// no need to remap this
-								remappedRefs.add(e.getValue());
-								
-							} else {
-								progress.start(0, "Remapping "+e.getKey()+" to "+outputType+" names");
-								remappedRefs.add(Remapper.remap(e.getValue(), inputCC.getNameSet(), Collections.<ClassCollection>emptyList(), progress));
-							}
-						}
-						
-						progress.start(0, "Remapping "+inputFile.getName()+" to "+outputType+" names");
-						inputCC = Remapper.remap(inputCC, outputNS, remappedRefs, progress);
-					}
-					
-					progress.start(0, "Writing "+outputFile.getName());
-					JarWriter.write(outputFile, inputCC, progress);
-					
-				} catch(Exception e) {
-					String s = getStackTraceMessage(e);
-					
-					/*if(!new File(confDir, side.nsside.srg_name).exists()) {
-						s = side.mcpside.srg_name+" not found in conf directory. \n";
-						switch(side) {
-						case Client:
-						case Server:
-							s += "If you're using Forge, set the side to Universal (1.4.6+) or Universal_old (1.4.5 and earlier)";
-							break;
-						case Universal:
-							s += "If you're not using Forge, set the side to Client or Server.\n";
-							s += "If you're using Forge on 1.4.5 or earlier, set the side to Universal_old.";
-							break;
-						case Universal_old:
-							s += "If you're not using Forge, set the side to Client or Server.\n";
-							break;
-						}
-					}*/
-					
-					System.err.println(s);
-					
-					crashed = true;
-					
-					final String errMsg = s;
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							progressLabel.setText(" ");
-							progressBar.setValue(0);
-							
-							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
-							JOptionPane.showMessageDialog(GuiMain.this, errMsg, "BON - Error", JOptionPane.ERROR_MESSAGE);
-						}
-					});
-				} finally {
-					if(!crashed) {
+		curTask = new Thread(() -> {
+			boolean crashed = false;
+
+			try {
+
+				IProgressListener progress = new IProgressListener() {
+					private String currentText;
+
+					@Override
+					public void start(final int max, final String text) {
+						currentText = text.equals("") ? " " : text;
 						SwingUtilities.invokeLater(new Runnable() {
-							@Override
 							public void run() {
-								progressLabel.setText(" ");
+								progressLabel.setText(currentText);
+								if(max >= 0)
+									progressBar.setMaximum(max);
 								progressBar.setValue(0);
-								
-								JOptionPane.showMessageDialog(GuiMain.this, "Done!", "BON", JOptionPane.INFORMATION_MESSAGE);
 							}
 						});
 					}
+
+					@Override
+					public void set(final int value) {
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								progressBar.setValue(value);
+							}
+						});
+					}
+
+					@Override
+					public void setMax(final int max) {
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								progressBar.setMaximum(max);
+							}
+						});
+					}
+				};
+
+
+
+				String mcVer = MappingLoader_MCP.getMCVer(mcpDir);
+
+				NameSet refNS = new NameSet(NameSet.Type.MCP, side.nsside, mcVer);
+				Map<String, ClassCollection> refCCList = new HashMap<>();
+
+				for(String s : refPathList) {
+					File refPathFile = new File(mcpDir, s);
+
+					progress.start(0, "Reading "+s);
+					refCCList.put(s, ClassCollectionFactory.loadClassCollection(refNS, refPathFile, progress));
+
+					//progress.start(0, "Remapping "+s);
+					//refs.add(Remapper.remap(mcpRefCC, inputNS, Collections.<ClassCollection>emptyList(), progress));
+				}
+
+				NameSet.Type[] remapTo;
+				NameSet.Type inputType;
+
+				switch(op) {
+				case DeobfuscateMod:
+					inputType = NameSet.Type.OBF;
+					remapTo = new NameSet.Type[] {NameSet.Type.SRG, NameSet.Type.MCP};
+					break;
+
+				case ReobfuscateMod:
+					inputType = NameSet.Type.MCP;
+					remapTo = new NameSet.Type[] {NameSet.Type.OBF};
+					break;
+
+				case SRGifyMod:
+					inputType = NameSet.Type.OBF;
+					remapTo = new NameSet.Type[] {NameSet.Type.SRG};
+					break;
+
+				case ReobfuscateModSRG:
+					inputType = NameSet.Type.MCP;
+					remapTo = new NameSet.Type[] {NameSet.Type.SRG};
+					break;
+
+				default:
+					throw new AssertionError("operation = "+op+"?");
+				}
+
+				NameSet inputNS = new NameSet(inputType, side.nsside, mcVer);
+
+				progress.start(0, "Reading "+inputFile.getName());
+				ClassCollection inputCC = ClassCollectionFactory.loadClassCollection(inputNS, inputFile, progress);
+
+				progress.start(0, "Reading MCP configuration");
+				MappingFactory.registerMCPInstance(mcVer, side.nsside, mcpDir, progress);
+
+
+
+				// For deobfuscation:
+				/*                       MCP reference
+				 *                       |           |
+				 *                       |           |
+				 *                       |           |
+				 *                       V           V
+				 *             OBF reference       SRG reference
+				 *                 |                     |
+				 *                 |                     |
+				 *                 V                     V
+				 * OBF input -----------> SRG input -----------> MCP input (output file)
+				 */
+
+
+
+
+				// remap to obf names from searge names, then searge names to MCP names, in two steps
+				// the first will be a no-op if the mod uses searge names already
+				for(NameSet.Type outputType : remapTo) {
+					NameSet outputNS = new NameSet(outputType, side.nsside, mcVer);
+
+					List<ClassCollection> remappedRefs = new ArrayList<>();
+					for(Map.Entry<String, ClassCollection> e : refCCList.entrySet()) {
+
+						if(inputCC.getNameSet().equals(e.getValue().getNameSet())) {
+							// no need to remap this
+							remappedRefs.add(e.getValue());
+
+						} else {
+							progress.start(0, "Remapping "+e.getKey()+" to "+outputType+" names");
+							remappedRefs.add(Remapper.remap(e.getValue(), inputCC.getNameSet(), Collections.<ClassCollection>emptyList(), progress));
+						}
+					}
+
+					progress.start(0, "Remapping "+inputFile.getName()+" to "+outputType+" names");
+					inputCC = Remapper.remap(inputCC, outputNS, remappedRefs, progress);
+				}
+
+				progress.start(0, "Writing "+outputFile.getName());
+				JarWriter.write(outputFile, inputCC, progress);
+
+			} catch(Exception e) {
+				String s = getStackTraceMessage(e);
+
+				/*if(!new File(confDir, side.nsside.srg_name).exists()) {
+					s = side.mcpside.srg_name+" not found in conf directory. \n";
+					switch(side) {
+					case Client:
+					case Server:
+						s += "If you're using Forge, set the side to Universal (1.4.6+) or Universal_old (1.4.5 and earlier)";
+						break;
+					case Universal:
+						s += "If you're not using Forge, set the side to Client or Server.\n";
+						s += "If you're using Forge on 1.4.5 or earlier, set the side to Universal_old.";
+						break;
+					case Universal_old:
+						s += "If you're not using Forge, set the side to Client or Server.\n";
+						break;
+					}
+				}*/
+
+				System.err.println(s);
+
+				crashed = true;
+
+				final String errMsg = s;
+				SwingUtilities.invokeLater(() -> {
+					progressLabel.setText(" ");
+					progressBar.setValue(0);
+
+					Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(errMsg), null);
+					JOptionPane.showMessageDialog(GuiMain.this, errMsg, "BON - Error", JOptionPane.ERROR_MESSAGE);
+				});
+			} finally {
+				if(!crashed) {
+					SwingUtilities.invokeLater(() -> {
+						progressLabel.setText(" ");
+						progressBar.setValue(0);
+
+						JOptionPane.showMessageDialog(GuiMain.this, "Done!", "BON", JOptionPane.INFORMATION_MESSAGE);
+					});
 				}
 			}
-		};
+		});
 		
 		curTask.start();
 	}
@@ -343,8 +335,8 @@ public class GuiMain extends JFrame {
 		outputField = new JTextField();
 		mcpField = new JTextField();
 		
-		sideSelect = new JComboBox<Side>(Side.values());
-		opSelect = new JComboBox<Operation>(Operation.values());
+		sideSelect = new JComboBox<>(Side.values());
+		opSelect = new JComboBox<>(Operation.values());
 		
 		progressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
 		progressLabel = new JLabel(" ", SwingConstants.LEFT);
@@ -403,12 +395,7 @@ public class GuiMain extends JFrame {
 		chooseOutputButton.addActionListener(new BrowseActionListener(outputField, false, this, false, browseDir));
 		chooseMCPButton.addActionListener(new BrowseActionListener(mcpField, true, this, true, mcpBrowseDir));
 		
-		goButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				goButtonPressed();
-			}
-		});
+		goButton.addActionListener(e -> goButtonPressed());
 		
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -422,10 +409,6 @@ public class GuiMain extends JFrame {
 	}
 	
 	public static void main(String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				new GuiMain().setVisible(true);
-			}
-		});
+		SwingUtilities.invokeLater(() -> new GuiMain().setVisible(true));
 	}
 }

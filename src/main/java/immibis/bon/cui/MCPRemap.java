@@ -49,7 +49,7 @@ public class MCPRemap extends CUIBase {
 			
 			if(!refNS.equals(inputNS)) {
 				System.out.println("Remapping "+ro.file+" ("+refNS+" -> "+inputNS+")");
-				refCC = Remapper.remap(refCC, inputNS, Collections.<ClassCollection>emptyList(), null);
+				refCC = Remapper.remap(refCC, inputNS, Collections.emptyList(), null);
 				remapTime += timer.flip();
 			}
 			
@@ -92,7 +92,7 @@ public class MCPRemap extends CUIBase {
     	}
     }
 	          
-	private List<RefOption> refOptsParsed = new ArrayList<>();
+	private final List<RefOption> refOptsParsed = new ArrayList<>();
 	
 	protected boolean checkOptions() throws Exception {
 		if(!super.checkOptions())

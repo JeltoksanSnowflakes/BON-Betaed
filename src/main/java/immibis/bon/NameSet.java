@@ -4,6 +4,7 @@ package immibis.bon;
  * E.g. "1.5.1 obfuscated", "1.5.1 searge", "1.5.1 MCP" are NameSets.
  */
 public class NameSet {
+
 	public enum Type {
 		OBF,
 		SRG,
@@ -16,7 +17,6 @@ public class NameSet {
 		SERVER
 	}
 
-	
 	public final Type type;
 	public final String mcVersion;
 	public final Side side;

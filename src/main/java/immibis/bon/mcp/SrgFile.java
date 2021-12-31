@@ -1,5 +1,7 @@
 package immibis.bon.mcp;
 
+import lombok.Getter;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -9,10 +11,10 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class SrgFile {
-	
-	public Map<String, String> classes = new HashMap<String, String>(); // name -> name
-	public Map<String, String> fields = new HashMap<String, String>(); // owner/name -> name
-	public Map<String, String> methods = new HashMap<String, String>(); // owner/namedesc -> name
+
+	@Getter private final Map<String, String> classes = new HashMap<>(); // name -> name
+	@Getter private final Map<String, String> fields = new HashMap<>(); // owner/name -> name
+	@Getter private final Map<String, String> methods = new HashMap<>(); // owner/namedesc -> name
 	
 	public static String getLastComponent(String s) {
 		String[] parts = s.split("/");

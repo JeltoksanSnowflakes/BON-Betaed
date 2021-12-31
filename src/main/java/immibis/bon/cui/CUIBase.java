@@ -6,15 +6,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class CUIBase {
 	@Target(ElementType.FIELD) @Retention(RetentionPolicy.RUNTIME)
-	public static @interface Option {
+	public @interface Option {
 		String value();
 	}
 	@Target(ElementType.FIELD) @Retention(RetentionPolicy.RUNTIME)
-	public static @interface Required {
+	public @interface Required {
 		
 	}
 	
@@ -55,7 +56,7 @@ public abstract class CUIBase {
 					f.set(this, Enum.valueOf(f.getType().asSubclass(Enum.class), val));
 				} catch(EnumConstantNotPresentException e) {
 					System.err.println("Invalid option for "+opt+": "+val);
-					System.err.println("Valid values: " + f.getType().getEnumConstants());
+					System.err.println("Valid values: " + Arrays.toString(f.getType().getEnumConstants()));
 					ok = false;
 					continue;
 				}

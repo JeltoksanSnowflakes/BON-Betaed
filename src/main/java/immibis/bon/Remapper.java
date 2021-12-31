@@ -6,7 +6,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-import java.io.IOException;
 import java.util.*;
 
 public class Remapper {
@@ -114,9 +113,9 @@ public class Remapper {
 		HashMap<String, ClassNode> refClasses = new HashMap<>();
 		
 		for(ClassCollection refcc : refs)
-			for(ClassNode cn : refcc.getAllClasses())
+			for(ClassNode cn : refcc.getClasses())
 				refClasses.put(cn.name, cn);
-		for(ClassNode cn : cc.getAllClasses())
+		for(ClassNode cn : cc.getClasses())
 			refClasses.put(cn.name, cn);
 		
 		cc = cc.cloneWithNameSet(m.toNS);
@@ -124,9 +123,9 @@ public class Remapper {
 		int classesProcessed = 0;
 		
 		if(progress != null)
-			progress.setMax(cc.getAllClasses().size());
+			progress.setMax(cc.getClasses().size());
 		
-		for(ClassNode cn : cc.getAllClasses()) {
+		for(ClassNode cn : cc.getClasses()) {
 			
 			if(progress != null)
 				progress.set(classesProcessed++);
@@ -268,7 +267,7 @@ public class Remapper {
 		
 	}
 
-	public static ClassCollection remap(ClassCollection classes, NameSet toNS, Collection<ClassCollection> refs, IProgressListener progress) throws MappingUnavailableException, IOException {
+	public static ClassCollection remap(ClassCollection classes, NameSet toNS, Collection<ClassCollection> refs, IProgressListener progress) throws MappingUnavailableException {
 		return remap(classes, MappingFactory.getMapping(classes.getNameSet(), toNS, null), refs, progress);
 	}
 

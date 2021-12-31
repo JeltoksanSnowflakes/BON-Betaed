@@ -5,7 +5,8 @@ import immibis.bon.JoinMapping;
 import immibis.bon.Mapping;
 import immibis.bon.NameSet;
 import immibis.bon.mcp.MappingLoader_MCP;
-import immibis.bon.mcp.MappingLoader_MCP.CantLoadMCPMappingException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,12 +17,11 @@ public class MappingFactory {
 
 	private static final Map<String, MappingLoader_MCP> mcpInstances = new HashMap<>();
 	
-	public static void registerMCPInstance(String mcVersion, NameSet.Side side, File mcpPath, IProgressListener progress) throws IOException, CantLoadMCPMappingException {
+	public static void registerMCPInstance(@NotNull String mcVersion, @NotNull NameSet.Side side, @NotNull File mcpPath, @Nullable IProgressListener progress) throws IOException {
 		mcpInstances.put(mcVersion+" "+side, new MappingLoader_MCP(mcVersion, side, mcpPath, progress));
 	}
 
-	@SuppressWarnings("incomplete-switch")
-	public static Mapping getMapping(NameSet from, NameSet to, IProgressListener progress) throws MappingUnavailableException {
+	public static @NotNull Mapping getMapping(@NotNull NameSet from, @NotNull NameSet to, @Nullable IProgressListener progress) throws MappingUnavailableException {
 		if(!from.mcVersion.equals(to.mcVersion))
 			throw new MappingUnavailableException(from, to, "different Minecraft version");
 		
@@ -35,32 +35,20 @@ public class MappingFactory {
 			switch(from.type) {
 			case MCP:
 				switch(to.type) {
-				case OBF:
-					return new JoinMapping(
-							mcpLoader.getReverseCSV(),
-							mcpLoader.getReverseSRG()
-						);
-				case SRG:
-					return mcpLoader.getReverseCSV();
+					case OBF: return new JoinMapping(mcpLoader.getReverseCSV(), mcpLoader.getReverseSRG());
+					case SRG: return mcpLoader.getReverseCSV();
 				}
 				break;
 			case OBF:
 				switch(to.type) {
-				case MCP:
-					return new JoinMapping(
-							mcpLoader.getForwardSRG(),
-							mcpLoader.getForwardCSV()
-						);
-				case SRG:
-					return mcpLoader.getForwardSRG();
+					case MCP: return new JoinMapping(mcpLoader.getForwardSRG(), mcpLoader.getForwardCSV());
+					case SRG: return mcpLoader.getForwardSRG();
 				}
 				break;
 			case SRG:
 				switch(to.type) {
-				case OBF:
-					return mcpLoader.getReverseSRG();
-				case MCP:
-					return mcpLoader.getForwardCSV();
+					case OBF: return mcpLoader.getReverseSRG();
+					case MCP: return mcpLoader.getForwardCSV();
 				}
 				break;
 			}

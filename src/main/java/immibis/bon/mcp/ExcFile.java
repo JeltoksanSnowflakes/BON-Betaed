@@ -1,5 +1,7 @@
 package immibis.bon.mcp;
 
+import lombok.Getter;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -8,7 +10,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class ExcFile {
-	public Map<String, String[]> exceptions = new HashMap<String, String[]>();
+	@Getter
+	private final Map<String, String[]> exceptions = new HashMap<>();
 	
 	// returns internal names, can return null
 	// input uses SRG names

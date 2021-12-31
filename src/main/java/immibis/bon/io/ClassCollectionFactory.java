@@ -4,6 +4,7 @@ import immibis.bon.ClassCollection;
 import immibis.bon.ClassFormatException;
 import immibis.bon.IProgressListener;
 import immibis.bon.NameSet;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.File;
@@ -11,7 +12,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-
 
 public class ClassCollectionFactory {
 	public static ClassCollection loadClassCollection(NameSet ns, File from, IProgressListener progress) throws IOException, ClassFormatException {
@@ -24,7 +24,7 @@ public class ClassCollectionFactory {
 			return JarLoader.loadClassesFromJar(ns, from, progress);
 	}
 	
-	private static void loadFromDir(String prefix, File dir, Collection<ClassNode> result) throws IOException, ClassFormatException {
+	private static void loadFromDir(@NotNull String prefix, @NotNull File dir, @NotNull Collection<ClassNode> result) throws IOException, ClassFormatException {
 		if(dir.isDirectory()) {
 			
 			if(!prefix.equals(""))

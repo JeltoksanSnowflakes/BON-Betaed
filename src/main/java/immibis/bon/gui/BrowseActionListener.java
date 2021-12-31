@@ -10,11 +10,11 @@ import java.io.IOException;
 
 public class BrowseActionListener implements ActionListener {
 	
-	private JTextField textbox;
-	private boolean isOpen;
-	private Component parent;
-	private JFileChooser jfc;
-	private Reference<File> defaultDir;
+	private final JTextField textbox;
+	private final boolean isOpen;
+	private final Component parent;
+	private final JFileChooser jfc;
+	private final Reference<File> defaultDir;
 
 	public BrowseActionListener(JTextField inputField, boolean isOpen, Component parent, boolean dirOnly, Reference<File> defaultDir) {
 		
@@ -22,7 +22,7 @@ public class BrowseActionListener implements ActionListener {
 		this.textbox = inputField;
 		this.isOpen = isOpen;
 		this.parent = parent;
-		
+
 		jfc = new JFileChooser();
 		jfc.setFileSelectionMode(dirOnly ? JFileChooser.DIRECTORIES_ONLY : JFileChooser.FILES_ONLY);
 		
@@ -30,7 +30,7 @@ public class BrowseActionListener implements ActionListener {
 			jfc.addChoosableFileFilter(new FileFilter() {
 				@Override
 				public String getDescription() {
-					return "Jars and zips only";
+					return "Jars and zips only.";
 				}
 				
 				@Override
