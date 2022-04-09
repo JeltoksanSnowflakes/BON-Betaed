@@ -1,18 +1,16 @@
 
 # BON-Betaed
-This is a modified fork of original project [bearded-octo-nemesis](https://github.com/immibis/bearded-octo-nemesis). The license of the project allows using, copying, modifying, merging, publishing, distributing, sublicensing, etc. including original project author's name. [Link to the original license file.](https://github.com/WaterfallFlower/BON-Betaed/blob/master/LICENSE_ORIGINAL)
+This is a modified fork of original project [bearded-octo-nemesis](https://github.com/immibis/bearded-octo-nemesis). The project is forked and slightly modified to make it process older minecraft versions without lots of bugs.
 
-This project is forked and slightly modified to make it process older minecraft versions.
+The license of the project allows using, copying, modifying, merging, publishing, distributing, sublicensing, etc. including original project author's name. [Link to the original license file.](https://github.com/WaterfallFlower/BON-Betaed/blob/master/LICENSE_ORIGINAL)
 
 ## Building the jar.
-Firstly, download or fork repository.
-Then assemble the ready-to-launch jar file:
-1. Using any IDE that can automatically work with Maven projects.
+1. Using IDEs with inbuilt/plugin-supported Maven (Eclipse/Intellij IDEA/NetBeans).
 
-	Just open it as a maven project, then run task `assembly:single`.
+	Open the downloaded or forked repository as a maven project, run task `assembly:single`.
 3. Without IDE (maven should be installed).
 
-	Open command prompt/powershell/terminal in folder and run:
+	Commands that have to be typed in terminal:
 	```
 	mvn install
 	mvn clean compile assembly:single
